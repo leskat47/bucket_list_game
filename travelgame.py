@@ -27,21 +27,29 @@ class Player(object):
     def spend(self, cost):
         self.money -= cost
 
+
 # Parent Class
 class Destination(object):
     def arrive(self):
-        pass
+        while self.new is True:
+            print "Welcome to %s!" % (self.country)
+            self.player.spend(1000)
+            self.new = False
+        self.select()
 
     # Interface with user to select next sight and run that visit. Return to this method after visit.
     def select(self):
         choice = ""
         while choice != "Next":
+            # Give local site choices
             print "Where would you like to go?"
             for name in self.choices:
                 print name
             print "Type 'Next' to go to another destination"
+            choice = raw_input(">")
+            print "You chose ", choice
 
-            choice = raw_input("> ")
+            # Prevent re-visiting the same place and direct according to selection. For locations, run visit.
             if choice in self.player.visited:
                 print "You've already visited %s. Pick again or type 'Next' to choose another trip." % (choice)
             elif choice not in self.player.visited and choice != "Next":
@@ -49,45 +57,40 @@ class Destination(object):
                     self.visit(choice)
                 else:
                     print "Sorry, that name is not on the list"
+        return
 
 
-
-    # Visit makes changes to points and money and shows a sight description
+# Visit makes changes to points and money and shows a sight description
     def visit(self, sight):
         points = self.get_points(sight)
-        print points['desc']
-        self.player.language(points['language'])
-        self.player.history(points['history'])
-        self.player.culture(points['culture'])
-        self.player.nature(points['nature'])
-        self.player.spend(points['cost'])
-        self.player.visit(sight)
-        self.select()
+        if self.player.money >= points['cost']:
+            print points['desc']
+            self.player.language(points['language'])
+            self.player.history(points['history'])
+            self.player.culture(points['culture'])
+            self.player.nature(points['nature'])
+            self.player.spend(points['cost'])
+            self.player.visit(sight)
+            self.select()
+        else:
+            print "You don't have enough money left for this trip."
+            self.select()
 
 
 class London(Destination):
 
     sights = {"Lake District": {'language': 0, 'history': 30, 'culture': 0, 'nature': 30, 'cost': 700,
-                                'desc': "Lake District National park has many fells, including Scafell Pike (3,210 ft), the highest mountain in England, lovely little towns and villages such as Grasmere, as well as boat excursions across Lake Windermere and Ullswater."},
+                                'desc': "Lake District National park has many fells, including Scafell Pike (3,210 ft), the highest mountain in England, lovely little towns and villages such as Grasmere, as well as boat excursions across Lake Windermere and Ullswater.\n"},
               "Windsor Castle": {'language': 0, 'history': 50, 'culture': 20, 'nature': 0, 'cost': 500,
-                        'desc': "Windsor Castle has served as the summer residence of British Royals since William the Conqueror built the first fortress here in 1078."},
+                        'desc': "Windsor Castle has served as the summer residence of British Royals since William the Conqueror built the first fortress here in 1078.\n"},
               "Eden Project": {'language': 0, 'history': 10, 'culture': 0, 'nature': 50, 'cost': 700,
-                             'desc': "The incredible Eden Project is a collection of unique artificial biomes containing an amazing collection of plants from around the world."}}
+                             'desc': "The incredible Eden Project is a collection of unique artificial biomes containing an amazing collection of plants from around the world.\n"}}
     country = "England"
     choices = ["Windsor Castle", "Lake District", "Eden Project"]
-
 
     def __init__(self, player):
         self.player = player
         self.new = True
-        self.arrive()
-
-    def arrive(self):
-        while self.new is True:
-            print "Welcome to %s!" % (self.country)
-            self.player.spend(1000)
-            self.new = False
-            self.select()
 
     def get_points(self, sight):
         return self.sights[sight]
@@ -95,32 +98,22 @@ class London(Destination):
 
 class Mexico(Destination):
 
-    sights = {'teotihuacan': {'language': 20, 'history': 50, 'culture': 50, 'nature': 5, 'cost': 400,
-                              'desc': "On the edge of the high-lying valley of Anahuac and dating from around AD 600, this once influential political, religious, and cultural center - now a UNESCO World Heritage Site - was reduced to ruins long before the arrival of the Spanish."},
-              'anthro_museum': {'language': 20, 'history': 50, 'culture': 50, 'nature': 0, 'cost': 100,
-                                'desc': "One of the most important of its kind in the world, the National Museum of Anthropology holds one of the most impressive collections of Mesoamerican artifacts in the world."},
-              'xochi': {'language': 20, 'history': 25, 'culture': 25, 'nature': 200, 'cost': 100,
-                        'desc': "Xochimilco is the last remnant of the vast system of causeways, canals, manmade islands and floating gardens created out of the vast lake system that once covered today's Valley of Mexico"}}
+    sights = {'Teotihuacan': {'language': 20, 'history': 50, 'culture': 50, 'nature': 5, 'cost': 400,
+                              'desc': "On the edge of the high-lying valley of Anahuac and dating from around AD 600, this once influential political, religious, and cultural center - now a UNESCO World Heritage Site - was reduced to ruins long before the arrival of the Spanish.\n"},
+              'Museum of Anthropology': {'language': 20, 'history': 50, 'culture': 50, 'nature': 0, 'cost': 100,
+                                         'desc': "One of the most important of its kind in the world, the National Museum of Anthropology holds one of the most impressive collections of Mesoamerican artifacts in the world.\n"},
+              'Xochimilco': {'language': 20, 'history': 25, 'culture': 25, 'nature': 200, 'cost': 100,
+                             'desc': "Xochimilco is the last remnant of the vast system of causeways, canals, manmade islands and floating gardens created out of the vast lake system that once covered today's Valley of Mexico\n"}}
 
     country = "Mexico"
     choices = ["Teotihuacan", "Museum of Anthropology", "Xochimilco"]
-
 
     def __init__(self, player):
         self.player = player
         self.new = True
 
-    def arrive(self):
-        while self.new is True:
-            print "Welcome to %s!" % (country)
-            self.player.spend(1000)
-            self.new = False
-            self.select()
-
     def get_points(self, sight):
-        return sights[sight]
-
-
+        return self.sights[sight]
 
     # * Lima, Peru
     #     - visit_MP
@@ -162,25 +155,31 @@ class Engine(object):
         self.player = player
 
     def play(self):
-        print "You have $100,000 and time to travel!"
+        print "You have $10,000 and time to travel!"
         print "Every place you can go offers something new: history, language, culture, natural beauty."
         print "Pick your trip and find out what your journey brings! You'll get points for every place you visit."
         self.pick_next()
 
     def pick_next(self):
         while self.player.money > 1000:
-            print "Where would you like to go? London or Mexico City?"
-            next_location = raw_input("> ")
+            print "\nWhere would you like to go? London or Mexico City?"
+            next_location = raw_input(">")
+            print "You chose ", next_location
             if next_location == "London":
-                val = self.map.locations.get("london")
+                location = self.map.locations.get("london")
+                location.arrive()
                 self.pick_next()
-            elif next_location == "Mexico":
-                val = self.map.locations.get("mexico")
+            elif next_location == "Mexico City":
+                location = self.map.locations.get("mexico")
+                location.arrive()
                 self.pick_next()
         else:
             print "You don't have enough money to get to another destination."
             print "Your final score is:"
-            print "Language: %s, \n History: %s \n Culture: %s, Nature: %s" % (player.language, player.history, player.culture, player.nature)
+            print "Language: %s, \nHistory: %s \nCulture: %s, \nNature: %s" % (self.player.language_points,
+                                                                               self.player.history_points,
+                                                                               self.player.culture_points,
+                                                                               self.player.nature_points)
 
 
 class Map(object):
